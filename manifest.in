@@ -1,0 +1,4 @@
+include LICENSE
+include readme.md
+
+recursive-include neurol/models *.h5
