@@ -1,0 +1,10 @@
+.vscode
+__pycache__
+
+env
+
+.pylintrc
+
+dist
+build
+neurol.egg-info
