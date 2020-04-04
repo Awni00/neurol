@@ -8,8 +8,12 @@ import time
 import biosppy.signals as bsig
 import numpy as np
 
-from .models.classification_tools import DEVICE_SAMPLING_RATE, get_channels
+from .models.classification_tools import get_channels
 from .models.preprocessing import epoch, epoch_band_features
+
+# is this right? is it 220 Hz (see documentation)?
+DEVICE_SAMPLING_RATE = {'muse': 256,
+                        }
 
 
 def ensemble_transform(buffer, epoch_len, channels, device='muse',

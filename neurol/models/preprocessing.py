@@ -49,7 +49,7 @@ def labels_from_timestamps(timestamps, sampling_rate, length):
         an integer array of size 'length' with a '1' at each time index where a
         corresponding timestamp exists, and a '0' otherwise.
     '''
-    # TODO:  currently assumes binary labels. Generalize to arbitrary labels.
+    # NOTE:  currently assumes binary labels. Generalize to arbitrary labels.
 
     # create labels array template
     labels = np.zeros(length)
@@ -295,50 +295,3 @@ def epoch_band_features(epoch_, sampling_rate, bands='all', return_dict=True):
             [band_features[band] for band in bands & band_features.keys()])
 
     return return_band_features
-
-
-def threshold_clf(features, threshold, clf_consolidator='any'):
-    '''
-      Classifies given features based on a given threshold.
-
-      Arguments:
-          features: an array of numerical features to classify
-          threshold: threshold for classification. A single number, or an
-            array corresponding to `features` for element-wise comparison.
-          clf_consolidator: method of consolidating element-wise comparisons
-            with threshold into a single classification.
-              'any': positive class if any features passes the threshold
-              'all': positive class only if all features pass threshold
-              'sum': a count of the number of features which pass the threshold
-              function: a custom function which takes in an array of booleans
-                and returns a consolidated classification
-
-      Returns:
-          classification for the given features. Return type `clf_consolidator`.
-    '''
-
-    try:
-        label = np.array(features) > np.array(threshold)
-    except ValueError as v_err:
-        print("Couldn't perform comparison between features and thresholds."
-              "Try a different format for the threshold.")
-        raise v_err
-
-    # consolidate binary label array into single classification
-    if clf_consolidator == 'any':
-        label = np.any(label)
-
-    elif clf_consolidator == 'all':
-        label = np.all(label)
-
-    elif clf_consolidator == 'sum':
-        label = np.sum(label)
-
-    elif callable(clf_consolidator):
-        try:
-            label = clf_consolidator(label)
-        except TypeError as t_err:
-            print("Couldn't consolidate classification with `clf_consolidator`")
-            raise t_err
-
-    return label
