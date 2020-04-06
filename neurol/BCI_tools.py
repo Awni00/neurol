@@ -97,6 +97,7 @@ def band_power_calibrator(inlet, channels, device, bands, percentile=50,
 
     # sleep for recording_length while inlet accumulates chunk
     # necessary so that no data is used before the indicated start of recording
+    inlet.open_stream()
     time.sleep(recording_length)
     recording, _ = inlet.pull_chunk(
         max_samples=sampling_rate*recording_length)  # get accumulated data
