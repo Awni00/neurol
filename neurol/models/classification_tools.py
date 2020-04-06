@@ -7,7 +7,6 @@ import numpy as np
 
 
 
-
 def get_channels(signal, channels, device='muse'):
     '''
     Returns a signal with only the desired channels.
@@ -27,7 +26,7 @@ def get_channels(signal, channels, device='muse'):
     # its available channels
     if device == 'muse':
         ch_ind_muse = {'TP9': 0, 'AF7': 1, 'AF8': 2, 'TP10': 3}
-        return_signal = np.array([signal[:, ch_ind_muse[ch]]
+        return_signal = np.array([np.array(signal)[:, ch_ind_muse[ch]]
                                   for ch in channels]).T
 
     return return_signal
