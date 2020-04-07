@@ -3,6 +3,8 @@ Module implementing a general Brain-Computer Interface which manages
 and incoming stream of neural data and responds to it in real-time.
 '''
 
+import time
+
 import numpy as np
 
 
@@ -153,3 +155,39 @@ class generic_BCI:
                 buffer = np.append(buffer, np.array(chunk), axis=0)
 
                 self.__update(buffer)
+
+
+    def test_update_rate(self, inlet, test_length=10, perform_action=True):
+        '''
+        Returns the rate at which the BCI is able to make a classification
+        and perform its action.
+
+        Arguments:
+            inlet: a pylsl `StreamInlet` of the brain signal.
+            test_length(float): how long to run the test for in seconds.
+            perform_action(bool): whether to perform the action or skip it.
+        '''
+
+        inlet.open_stream()
+
+        # get number of available channels in inlet
+        n_channels = inlet.channel_count
+        buffer = np.empty((0, n_channels))  # initialize buffer
+
+        n_updates = 0
+        start_time = time.time()
+
+        while time.time() - start_time < test_length:
+            chunk, _ = inlet.pull_chunk(max_samples=self.buffer_length)
+            if np.size(chunk) != 0:  # Check if new data available
+                buffer = np.append(buffer, np.array(chunk), axis=0)
+
+                self.__update(buffer)
+
+                n_updates += 1
+
+        #inlet.close_stream()
+
+        update_rate = n_updates / test_length
+
+        return update_rate
