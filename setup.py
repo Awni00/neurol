@@ -24,8 +24,10 @@ setuptools.setup(
             "Keras"
     ],
     include_package_data=True,
-    # url="https://github.com/...",
-    #project_urls={'Documentation': '', 'Source':'', 'Tracker':''},
+    url='https://github.com/Awni00/neurol',
+    project_urls={'Documentation': 'https://neurol.readthedocs.io/',
+        'Source':'https://github.com/Awni00/neurol',
+        'Tracker':'https://github.com/Awni00/neurol/issues'},
     packages=setuptools.find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

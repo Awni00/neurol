@@ -1,16 +1,23 @@
 <p align='center' >
-    <img src='https://github.com/Awni00/neurol/blob/docs/docs/logo/neurol_360dpi.png?raw=true' alt='neurol logo' width='400'/>
+    <img src='https://github.com/Awni00/neurol/blob/dev/docs/logo/neurol_360dpi.png?raw=true' alt='neurol logo' width='400'/>
 </p>
 
 <p align='center'>
+    <a href='https://www.python.org/downloads/release'>
+  	    <img alt="Python 3.6+" src='https://img.shields.io/badge/python-3.6+-blue.svg'/>
+    </a>
+    <a href="https://pypi.org/project/neurol/">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/neurol" alt="PyPI version">
+    </a>
     <a href='https://neurol.readthedocs.io/en/latest/?badge=latest'>
         <img src='https://readthedocs.org/projects/neurol/badge/?version=latest' alt='Documentation Status' />
     </a>
-    <a href="https://www.python.org/downloads/release">
-  	    <img alt="Python 3.6+" src="https://img.shields.io/badge/python-3.6+-blue.svg">
+    <a href=https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project>
+        <img alt='PR welcome' src='https://img.shields.io/badge/PR-Welcome-%23FF8300.svg?'/>
     </a>
-    <!-- release -->
-    <!-- pypi -->
+    <a href='https://github.com/Awni00/neurol/blob/dev/LICENSE'>
+        <img alt="PyPI - License" src="https://img.shields.io/pypi/l/neurol"/>
+    </a>
 </p>
 
 
