@@ -24,3 +24,24 @@ Neurol is a python package for implementing Brain-Computer Interfaces in a modul
 The `neurol` BCI manages an incoming stream of brain data and uses the above user-defined functions to run a brain-computer interface.
 
 The package includes generic utility functions to aid in creating `classifier`'s, `transfromer`'s, and `calibrator`'s for common BCI use-cases. It also comes prepackaged with a growing list of trained machine learning models for common BCI classification tasks.
+
+# Installation
+
+`neurol` can be easily installed using `pip`:
+
+```
+$ pip install neurol
+```
+
+# Documentation
+
+Please find `neurol`'s documentation <a href='https://neurol.readthedocs.io/'>here</a>.
+
+<!--this is linking to the examples folder in the `dev` branch. switch to master branch at some point-->
+You can also find example notebooks in the <a href='https://github.com/Awni00/neurol/tree/dev/examples'>examples</a> directory.
+
+# Contact
+
+If you have questions or would like to discuss this package, please don't hesitate to contact me.
+
+<a href='mailto:awni.altabaa@queensu.ca'>Awni Altabaa</a> - awni.altabaa@queensu.ca / awnyaltabaa@gmail.com
