@@ -1,8 +1,6 @@
 neurol.models package
 =====================
 
-.. Submodules
-----------
 
 neurol.models.classification\_tools module
 ------------------------------------------

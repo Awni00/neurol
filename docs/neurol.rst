@@ -2,7 +2,7 @@ neurol package
 ==============
 
 neurol.models subpackage
------------
+------------------------
 
 
 .. toctree::
@@ -11,8 +11,6 @@ neurol.models subpackage
 
    neurol.models
 
-.. Submodules
-----------
 
 neurol.BCI module
 -----------------
