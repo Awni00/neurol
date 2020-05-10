@@ -51,4 +51,4 @@ You can also find example notebooks in the <a href='https://github.com/Awni00/ne
 
 If you have questions or would like to discuss this package, please don't hesitate to contact me.
 
-<a href='mailto:awni.altabaa@queensu.ca'>Awni Altabaa</a> - awni.altabaa@queensu.ca / awnyaltabaa@gmail.com
+Awni Altabaa - awni.altabaa@queensu.ca / awnyaltabaa@gmail.com
