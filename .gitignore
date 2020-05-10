@@ -8,3 +8,7 @@ venv
 dist
 build
 neurol.egg-info
+
+docs/_build
+docs/_static
+docs/_templates
