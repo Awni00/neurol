@@ -22,14 +22,6 @@ The ``neurol`` BCI manages an incoming stream of brain data and uses the above u
 
 The package includes generic utility functions to aid in creating the ``classifier``'s, ``transfromer``'s, and ``calibrator``'s for common BCI use-cases. It also comes prepackaged with a growing list of trained machine learning models for common BCI classification tasks.
 
-Installation
-------------
-
-``neurol`` can be easily installed using ``pip``:
-
-.. code:: bash
-
-   $ pip install neurol
 
 .. toctree::
    :maxdepth: 2
@@ -37,6 +29,14 @@ Installation
 
    neurol
 
+Installation
+============
+
+``neurol`` can be easily installed using ``pip``:
+
+.. code:: bash
+
+   $ pip install neurol
 
 Indices
 ==================
