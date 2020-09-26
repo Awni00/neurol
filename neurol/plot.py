@@ -301,7 +301,7 @@ def plot_spectrogram(inlet, buffer_length=2048, channels=None,
 
             win.nextRow()
 
-        ch_inds = list(channels.keys())
+        ch_inds = list(channels)
 
 
     elif isinstance(channels, dict):
