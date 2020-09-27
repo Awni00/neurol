@@ -6,3 +6,5 @@ matplotlib==3.2.0
 biosppy==0.6.1
 pylsl==1.12.2
 scikit_learn==0.22.2.post1
+PyQt5==5.15.1
+pyqtgraph==0.11.0
