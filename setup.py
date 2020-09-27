@@ -6,7 +6,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name="neurol",
-    version="0.0.2",
+    version="0.0.3",
     author="Awni",
     author_email="awni.altabaa@queensu.ca",
     description="A package for modularly implenting Brain-Computer Interfaces",
