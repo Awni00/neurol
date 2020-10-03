@@ -7,9 +7,12 @@ import numpy as np
 
 # TODO: add functionality to specify units and scaling factors
 
-class lsl_stream(stream):
+class lsl_stream:
     """
-    stream from lsl device
+    A generalized stream object for an lsl data source.
+
+    Manages a buffer of data and makes it available.
+    Used by neurol.BCI and neurol.plot.
     """
 
     def __init__(self, pylsl_inlet, buffer_length=2048):
