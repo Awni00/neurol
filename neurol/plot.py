@@ -11,14 +11,12 @@ import pyqtgraph as pg
 #TODO:
 # add filtering
 
-def plot(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
+def plot(stream, channels=None, w_size=(1920, 1080)):
     """
-    plots data stream from inlet. one row per channel.
+    plots data stream. one row per channel.
 
     Args:
-        inlet (pylsl.pylsl.StreamInlet): the pylsl inlet streaming neural data.
-        buffer_length (int, optional): length of buffer to plot (# of samples).
-            Defaults to 2048.
+        stream (neurol.streams object): neurol stream for a data source.
         channels: channels to plot. list/tuple of channel indices,
             or dict with indices as keys and names as values.
             Defaults to None (plots all channels w/o names).
@@ -27,13 +25,12 @@ def plot(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
     """
 
 
-    # get sampling rate and number of available channels from inlet
-    info = inlet.info()
-    n_channels = info.channel_count()
-    s_rate = info.nominal_srate()
+    # get info about stream
+    n_channels = stream.n_channels
+    s_rate = stream.sampling_rate
+    buffer_length = stream.buffer_length
 
 
-    buffer = np.zeros((buffer_length, n_channels))  # initialize buffer
     ts = np.linspace(-int(buffer_length/s_rate), 0, num=buffer_length)
 
     # initialize pyqt graph app, window
@@ -57,7 +54,7 @@ def plot(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
             plt.setMouseEnabled(x=False, y=False)
             plt.showGrid(x=True)
 
-            plt_curve = plt.plot(y=buffer[:, ch_ind], x=ts)
+            plt_curve = plt.plot(y=stream.buffer[:, ch_ind], x=ts)
 
             plots.append(plt)
             plot_curves.append(plt_curve)
@@ -74,7 +71,7 @@ def plot(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
             plt.setMouseEnabled(x=False, y=False)
             plt.showGrid(x=True)
 
-            plt_curve = plt.plot(y=buffer[:, ch_ind], x=ts)
+            plt_curve = plt.plot(y=stream.buffer[:, ch_ind], x=ts)
 
             plots.append(plt)
             plot_curves.append(plt_curve)
@@ -94,22 +91,14 @@ def plot(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
     # process initialization events
     app.processEvents()
 
-    # open stream
-    inlet.open_stream()
 
     # currently always running, TODO: implement ending condition on app close
     running = True
 
     while running:
-        chunk, _ = inlet.pull_chunk(max_samples=buffer_length)
-        if np.size(chunk) != 0:  # Check if new data available
-            buffer = np.append(buffer, np.array(chunk), axis=0)
-
-            # clip to buffer_length
-            buffer = buffer[-buffer_length:]
-
+        if stream.update_buffer():  # update buffer if new data available
             for ch_ind, plot_curve in zip(ch_inds, plot_curves):
-                plot_curve.setData(y=buffer[:, ch_ind], x=ts)
+                plot_curve.setData(y=stream.buffer[:, ch_ind], x=ts)
 
             app.processEvents()
 
@@ -117,14 +106,12 @@ def plot(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
             running = False
             app.quit()
 
-def plot_fft(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
+def plot_fft(stream, channels=None, w_size=(1920, 1080)):
     """
     plots fourrier transform of data stream from inlet. one row per channel.
 
     Args:
-        inlet (pylsl.pylsl.StreamInlet): the pylsl inlet streaming neural data.
-        buffer_length (int, optional): length of buffer to plot (# of samples).
-            Defaults to 2048.
+        stream (neurol.streams object): neurol stream for a data source.
         channels: channels to plot. list/tuple of channel indices,
             or dict with indices as keys and names as values.
             Defaults to None (plots all channels w/o names).
@@ -133,13 +120,12 @@ def plot_fft(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
     """
 
 
-    # get sampling rate and number of available channels from inlet
-    info = inlet.info()
-    n_channels = info.channel_count()
-    s_rate = info.nominal_srate()
+    # get info about stream
+    n_channels = stream.n_channels
+    s_rate = stream.sampling_rate
+    buffer_length = stream.buffer_length
 
 
-    buffer = np.zeros((buffer_length, n_channels))  # initialize buffer
     fs = np.fft.fftshift(np.fft.fftfreq(buffer_length, 1/s_rate))
 
     # initialize pyqt graph app, window
@@ -157,9 +143,9 @@ def plot_fft(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
 
     if isinstance(channels, (list, tuple)):
         for ch_ind in channels:
-            plt = win.addPlot(title=f'channel {ch_ind}',
-                              labels={'left': 'mV'}
-                              )
+            plt = win.addPlot(title=f'channel {ch_ind}')
+            plt.setLabel('left', 'voltage-secs', units='Vs') # finalize above
+
             plt.setMouseEnabled(x=False, y=False)
             plt.showGrid(x=True)
 
@@ -199,20 +185,14 @@ def plot_fft(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
     # process initialization events
     app.processEvents()
 
-    # open stream
-    inlet.open_stream()
 
     running = True
     while running:
-        chunk, _ = inlet.pull_chunk(max_samples=buffer_length)
-        if np.size(chunk) != 0:  # Check if new data available
-            buffer = np.append(buffer, np.array(chunk)/1000, axis=0)
-
-            # clip to buffer_length
-            buffer = buffer[-buffer_length:]
+        if stream.update_buffer():  # update buffer if new data available
+            buff_V = stream.buffer / 1000 # get buffer and convert from mV to V
 
             # compute fft
-            fft = np.fft.fftshift(np.fft.fft(buffer, axis=0))
+            fft = np.fft.fftshift(np.fft.fft(buff_V, axis=0))
             fft_mag = np.abs(fft)
 
             for ch_ind, plot_curve in zip(ch_inds, plot_curves):
@@ -229,15 +209,12 @@ def plot_fft(inlet, buffer_length=2048, channels=None, w_size=(1920, 1080)):
 # NOTE: works, but spectrogram always seems to produce extreme outliers
 # that mess up the graph...
 
-def plot_spectrogram(inlet, buffer_length=2048, channels=None,
-                     w_size=(1920, 1080)):
+def plot_spectrogram(stream, channels=None, w_size=(1920, 1080)):
     """
     plots spectrogram of data stream from inlet. one row per channel.
 
     Args:
-        inlet (pylsl.pylsl.StreamInlet): the pylsl inlet streaming neural data.
-        buffer_length (int, optional): length of buffer to plot (# of samples).
-            Defaults to 2048.
+        stream (neurol.streams object): neurol stream for a data source.
         channels: channels to plot. list/tuple of channel indices,
             or dict with indices as keys and names as values.
             Defaults to None (plots all channels w/o names).
@@ -246,19 +223,19 @@ def plot_spectrogram(inlet, buffer_length=2048, channels=None,
     """
 
 
-    # get sampling rate and number of available channels from inlet
-    info = inlet.info()
-    n_channels = info.channel_count()
-    s_rate = info.nominal_srate()
+    # get info about stream
+    n_channels = stream.n_channels
+    s_rate = stream.sampling_rate
+    buffer_length = stream.buffer_length
 
-
-    buffer = np.zeros((buffer_length, n_channels))  # initialize buffer
-    freqs, ts, Sxx = signal.spectrogram(buffer[:, 0], s_rate, mode='magnitude')
-    ts = np.max(ts) - ts
+    # get format of frequencies and times
+    freqs, ts, _ = signal.spectrogram(
+        stream.buffer[:, 0], s_rate, mode='magnitude')
+    ts = np.max(ts) - ts  # reverse ts s.t. it takes the range [-max_ts, 0]
 
     # initialize pyqt graph app, window
     win = pg.GraphicsLayoutWidget(show=True)
-    win.setWindowTitle('Live Plot')
+    win.setWindowTitle('Spectrogram Live Plot')
     app = pg.QtGui.QApplication
     win.resize(w_size[0], w_size[1])
 
@@ -274,6 +251,8 @@ def plot_spectrogram(inlet, buffer_length=2048, channels=None,
     if channels is None:
         channels = list(range(n_channels))
 
+    # TODO: implement x-axis time range using ts defined above
+    # TODO: implement y-axis frequency range using freqs defined above
     if isinstance(channels, (list, tuple)):
         for ch_ind in channels:
             plt = win.addPlot(title=f'channel {ch_ind}')
@@ -345,27 +324,21 @@ def plot_spectrogram(inlet, buffer_length=2048, channels=None,
     # process initialization events
     app.processEvents()
 
-    # open stream
-    inlet.open_stream()
 
     running = True
     while running:
-        chunk, _ = inlet.pull_chunk(max_samples=buffer_length)
-        if np.size(chunk) != 0:  # Check if new data available
-            buffer = np.append(buffer, np.array(chunk), axis=0)
+        if stream.update_buffer():  # update buffer if new data available
 
-            # clip to buffer_length
-            buffer = buffer[-buffer_length:]
+            # TODO: divide buffer by 1000?
 
             for ch_ind, plot_img in zip(ch_inds, plot_imgs):
                 freqs, _, Sxx = signal.spectrogram(
-                    buffer[:, ch_ind], s_rate, mode='magnitude')
+                    stream.buffer[:, ch_ind], s_rate, mode='magnitude')
 
                 # FIXME: temp fix of outliers
                 Sxx_clipped = np.clip(Sxx, 0, 100)
                 plot_img.setImage(Sxx_clipped)
 
-                #plot_curve.setData(y=buffer[:, ch_ind], x=ts)
 
             app.processEvents()
 
