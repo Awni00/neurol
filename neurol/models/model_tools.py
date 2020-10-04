@@ -5,7 +5,7 @@ Includes functionality for importing and using the models.
 
 import os
 
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 
 # Note: currently all models are keras .h5 models.
 # Think about organization of this module as new models are added
