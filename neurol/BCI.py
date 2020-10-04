@@ -5,14 +5,12 @@ and incoming stream of neural data and responds to it in real-time.
 
 import time
 
-import numpy as np
-
 
 class generic_BCI:
     '''
     Implements a generic Brain-Computer Interface.
 
-    Internally manages a buffer of the signal given in `inlet` and
+    Internally manages a buffer of the signal given in `stream` and
     continuously performs classification on appropriately transformed
     real-time neural data. At each classification, a corresponding `action`
     is performed.
@@ -25,7 +23,7 @@ class generic_BCI:
         action: a function which takes in the classification, and
             performs some action.
         calibrator: a function which is run on startup to perform
-            calibration using `inlet`; returns `calibration_info`
+            calibration using `stream`; returns `calibration_info`
             which is used by `classifier` and `transformer`.
         calibration_info: the result of the calibrator, if applicable.
         buffer_length(int): the length of the `buffer`; specifies the
@@ -35,7 +33,7 @@ class generic_BCI:
     '''
 
     def __init__(self, classifier, transformer=None, action=print,
-                 calibrator=None, buffer_length=1024):
+                 calibrator=None):
         '''
         Initialize a generic BCI object.
 
@@ -49,10 +47,8 @@ class generic_BCI:
             action: a function which takes in the classification, and
                 performs some action.
             calibrator: a function which is run on startup to perform
-                calibration using `inlet`; returns `calibration_info`
+                calibration using `stream`; returns `calibration_info`
                 which is used by `classifier` and `transformer`.
-            buffer_length(int): the length of the `buffer`; specifies the
-                number of samples of the signal to keep for classification.
         '''
 
         self.brain_state = None
@@ -64,121 +60,101 @@ class generic_BCI:
         self.calibrator = calibrator
         self.calibration_info = None
 
-        self.buffer_length = buffer_length
-
-    def calibrate(self, inlet):
+    def calibrate(self, stream):
         '''
         runs the `calibrator`.
 
-        return value of `calibrator` is stored in the instance's
+        return value of `calibrator` is stored in the object's
         `calibration_info` which the `transformer` and `classifier`
         can use at run-time of BCI.
 
         Arguments:
-            inlet: a pylsl `StreamInlet` of the brain signal.
+            stream(neurol.streams object): neurol stream for brain data.
         '''
         # run calibrator to get `calibration_info` which is used when
         # perfroming transformation and classifiaction
         if self.calibrator is not None:
-            self.calibration_info = self.calibrator(inlet)
+            self.calibration_info = self.calibrator(stream)
         else:
-            print('Instance of generic BCI has no calibrator')
+            print('Instance of BCI has no calibrator')
             self.calibration_info = None
 
     def _update(self, buffer):
+        '''transforms, classifies, and acts on data in buffer'''
 
-        if buffer.shape[0] > self.buffer_length:
-            # clip to buffer_length
-            buffer = buffer[-self.buffer_length:]
-
-            # transform buffer for classification
-            if self.transformer is not None:
-                try:
-                    clf_input = self.transformer(buffer, self.calibration_info)
-                except TypeError as type_err:
-                    print(('Got TypeError when calling transformer.\n\n'
-                           'Make sure your transformer is a function '
-                           'which accepts (buffer, calibration_info) as inputs.'
-                           ))
-                    raise type_err
-            else:
-                clf_input = buffer
-
+        # transform buffer for classification
+        if self.transformer is not None:
             try:
-                # perform classification
-                self.brain_state = self.classifier(clf_input,
-                                                   self.calibration_info)
+                clf_input = self.transformer(buffer, self.calibration_info)
             except TypeError as type_err:
-                print(('Got TypeError when calling classifier. \n\n'
-                       'Make sure your classifier is a function which '
-                       'accepts (clf_input, calibration_info) as inputs.'))
+                print(('Got TypeError when calling transformer.\n\n'
+                       'Make sure your transformer is a function '
+                       'which accepts (buffer, calibration_info) as inputs.'
+                       ))
                 raise type_err
+        else:
+            clf_input = buffer
 
-            try:
-                # run action based on classification
-                self.action(self.brain_state)
-            except TypeError as type_err:
-                print(('Got TypeError when calling action. \n\n'
-                       'Make sure your action is a function which '
-                       'accepts (brain_state) as an input.'))
-                raise type_err
+        # perform classification
+        try:
+            self.brain_state = self.classifier(clf_input,
+                                               self.calibration_info)
+        except TypeError as type_err:
+            print(('Got TypeError when calling classifier. \n\n'
+                   'Make sure your classifier is a function which '
+                   'accepts (clf_input, calibration_info) as inputs.'))
+            raise type_err
 
-    def run(self, inlet):
+        # run action based on classification
+        try:
+            self.action(self.brain_state)
+        except TypeError as type_err:
+            print(('Got TypeError when calling action. \n\n'
+                   'Make sure your action is a function which '
+                   'accepts (brain_state) as an input.'))
+            raise type_err
+
+    def run(self, stream):
         '''
         Runs the defined Brain-Computer Interface.
 
-        Internally manages a buffer of the signal given in `inlet` and
+        Internally manages a buffer of the signal given in `stream` and
         continuously performs classification on appropriately transformed
         real-time neural data. At each classification, a corresponding `action`
         is performed.
 
 
         Arguments:
-            inlet: a pylsl `StreamInlet` of the brain signal.
+            stream(neurol.streams object): neurol stream for brain data.
         '''
-
-        inlet.open_stream()
-
-        # get number of available channels in inlet
-        n_channels = inlet.channel_count
-        buffer = np.empty((0, n_channels))  # initialize buffer
 
         # TODO: implement ending condition?
         running = True  # currently constantly running.
 
         while running:
-            chunk, _ = inlet.pull_chunk(max_samples=self.buffer_length)
-            if np.size(chunk) != 0:  # Check if new data available
-                buffer = np.append(buffer, np.array(chunk), axis=0)
+            # if new data available, run _update on it
+            if stream.update_buffer():
+                self._update(stream.buffer)
 
-                self._update(buffer)
-
-    def test_update_rate(self, inlet, test_length=10, perform_action=True):
+    def test_update_rate(self, stream, test_length=10, perform_action=True):
         '''
         Returns the rate at which the BCI is able to make a classification
         and perform its action.
 
         Arguments:
-            inlet: a pylsl `StreamInlet` of the brain signal.
+            stream(neurol.streams object): neurol stream for brain data.
             test_length(float): how long to run the test for in seconds.
             perform_action(bool): whether to perform the action or skip it.
         '''
-
-        inlet.open_stream()
-
-        # get number of available channels in inlet
-        n_channels = inlet.channel_count
-        buffer = np.empty((0, n_channels))  # initialize buffer
 
         n_updates = 0
         start_time = time.time()
 
         while time.time() - start_time < test_length:
-            chunk, _ = inlet.pull_chunk(max_samples=self.buffer_length)
-            if np.size(chunk) != 0:  # Check if new data available
-                buffer = np.append(buffer, np.array(chunk), axis=0)
 
-                self._update(buffer)
+            # if new data available, run _update on it
+            if stream.update_buffer():
+                self._update(stream.buffer)
 
                 n_updates += 1
 
@@ -194,7 +170,7 @@ class fsm_BCI(generic_BCI):
     Classification of brain-state is not only dependent on the transformed
     real-time brain signal, but also the previous brain state.
 
-    Internally manages a buffer of the signal given in `inlet` and
+    Internally manages a buffer of the signal given in `stream` and
     continuously performs classification on appropriately transformed
     real-time neural data. At each classification, a corresponding `action`
     is performed.
@@ -207,7 +183,7 @@ class fsm_BCI(generic_BCI):
         action: a function which takes in the classification, and
             performs some action.
         calibrator: a function which is run on startup to perform
-            calibration using `inlet`; returns `calibration_info`
+            calibration using `stream`; returns `calibration_info`
             which is used by `classifier` and `transformer`.
         calibration_info: the result of the calibrator, if applicable.
         buffer_length(int): the length of the `buffer`; specifies the
@@ -217,41 +193,39 @@ class fsm_BCI(generic_BCI):
     '''
 
     def _update(self, buffer):
-        if buffer.shape[0] > self.buffer_length:
-            # clip to buffer_length
-            buffer = buffer[-self.buffer_length:]
+        '''transforms, classifies, and acts on data in buffer'''
 
-            # transform buffer for classification
-            if self.transformer is not None:
-                try:
-                    clf_input = self.transformer(buffer, self.calibration_info)
-                except TypeError as type_err:
-                    print(('Got TypeError when calling transformer.\n\n'
-                           'Make sure your transformer is a function '
-                           'which accepts (buffer, calibration_info) as inputs.'
-                           ))
-                    raise type_err
-            else:
-                clf_input = buffer
-
+        # transform buffer for classification
+        if self.transformer is not None:
             try:
-                # perform classification
-                self.brain_state = self.classifier(clf_input, self.brain_state,
-                                                   self.calibration_info)
+                clf_input = self.transformer(buffer, self.calibration_info)
             except TypeError as type_err:
-                print(('Got TypeError when calling classifier. \n\n'
-                       'Make sure your classifier is a function which accepts '
-                       '(clf_input, brain_state, calibration_info) as inputs.'))
+                print(('Got TypeError when calling transformer.\n\n'
+                       'Make sure your transformer is a function '
+                       'which accepts (buffer, calibration_info) as inputs.'
+                       ))
                 raise type_err
+        else:
+            clf_input = buffer
 
-            try:
-                # run action based on classification
-                self.action(self.brain_state)
-            except TypeError as type_err:
-                print(('Got TypeError when calling action. \n\n'
-                       'Make sure your action is a function which '
-                       'accepts (brain_state) as an input.'))
-                raise type_err
+        try:
+            # perform classification
+            self.brain_state = self.classifier(clf_input, self.brain_state,
+                                               self.calibration_info)
+        except TypeError as type_err:
+            print(('Got TypeError when calling classifier. \n\n'
+                   'Make sure your classifier is a function which accepts '
+                   '(clf_input, brain_state, calibration_info) as inputs.'))
+            raise type_err
+
+        try:
+            # run action based on classification
+            self.action(self.brain_state)
+        except TypeError as type_err:
+            print(('Got TypeError when calling action. \n\n'
+                   'Make sure your action is a function which '
+                   'accepts (brain_state) as an input.'))
+            raise type_err
 
 
 class retentive_BCI(generic_BCI):
@@ -261,7 +235,7 @@ class retentive_BCI(generic_BCI):
     Classification of brain-state is not only dependent on the transformed
     real-time brain signal, but also the finite list of previous brain states.
 
-    Internally manages a buffer of the signal given in `inlet` and
+    Internally manages a buffer of the signal given in `stream` and
     continuously performs classification on appropriately transformed
     real-time neural data. At each classification, a corresponding `action`
     is performed.
@@ -274,7 +248,7 @@ class retentive_BCI(generic_BCI):
         action: a function which takes in the classification, and
             performs some action.
         calibrator: a function which is run on startup to perform
-            calibration using `inlet`; returns `calibration_info`
+            calibration using `stream`; returns `calibration_info`
             which is used by `classifier` and `transformer`.
         calibration_info: the result of the calibrator, if applicable.
         buffer_length(int): the length of the `buffer`; specifies the
@@ -300,7 +274,7 @@ class retentive_BCI(generic_BCI):
             action: a function which takes in the classification, and
                 performs some action.
             calibrator: a function which is run on startup to perform
-                calibration using `inlet`; returns `calibration_info`
+                calibration using `stream`; returns `calibration_info`
                 which is used by `classifier` and `transformer`.
             buffer_length(int): the length of the `buffer`; specifies the
                 number of samples of the signal to keep for classification.
@@ -314,41 +288,39 @@ class retentive_BCI(generic_BCI):
         self.past_states = []
 
     def _update(self, buffer):
-        if buffer.shape[0] > self.buffer_length:
-            # clip to buffer_length
-            buffer = buffer[-self.buffer_length:]
+        '''transforms, classifies, and acts on data in buffer'''
 
-            # transform buffer for classification
-            if self.transformer is not None:
-                try:
-                    clf_input = self.transformer(buffer, self.calibration_info)
-                except TypeError as type_err:
-                    print(('Got TypeError when calling transformer.\n\n'
-                           'Make sure your transformer is a function '
-                           'which accepts (buffer, calibration_info) as inputs.'
-                           ))
-                    raise type_err
-            else:
-                clf_input = buffer
-
+        # transform buffer for classification
+        if self.transformer is not None:
             try:
-                # perform classification
-                self.brain_state = self.classifier(clf_input, self.past_states,
-                                                   self.calibration_info)
-                self.past_states.append(self.brain_state)
-                if len(self.past_states) > self.memory_length:
-                    self.past_states = self.past_states[-self.memory_length:]
+                clf_input = self.transformer(buffer, self.calibration_info)
             except TypeError as type_err:
-                print(('Got TypeError when calling classifier. \n\n'
-                       'Make sure your classifier is a function which accepts '
-                       '(clf_input, past_states, calibration_info) as inputs.'))
+                print(('Got TypeError when calling transformer.\n\n'
+                       'Make sure your transformer is a function '
+                       'which accepts (buffer, calibration_info) as inputs.'
+                       ))
                 raise type_err
+        else:
+            clf_input = buffer
 
-            try:
-                # run action based on classification
-                self.action(self.brain_state)
-            except TypeError as type_err:
-                print(('Got TypeError when calling action. \n\n'
-                       'Make sure your action is a function which '
-                       'accepts (brain_state) as an input.'))
-                raise type_err
+        try:
+            # perform classification
+            self.brain_state = self.classifier(clf_input, self.past_states,
+                                               self.calibration_info)
+            self.past_states.append(self.brain_state)
+            if len(self.past_states) > self.memory_length:
+                self.past_states = self.past_states[-self.memory_length:]
+        except TypeError as type_err:
+            print(('Got TypeError when calling classifier. \n\n'
+                   'Make sure your classifier is a function which accepts '
+                   '(clf_input, past_states, calibration_info) as inputs.'))
+            raise type_err
+
+        try:
+            # run action based on classification
+            self.action(self.brain_state)
+        except TypeError as type_err:
+            print(('Got TypeError when calling action. \n\n'
+                   'Make sure your action is a function which '
+                   'accepts (brain_state) as an input.'))
+            raise type_err
