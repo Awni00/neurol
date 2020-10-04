@@ -38,6 +38,16 @@ class lsl_stream:
         # open stream
         self.inlet.open_stream()
 
+    def get_data(self):
+        """
+        gets latest data.
+        """
+
+        if self.inlet.samples_available():
+            # get latest data
+            chunk, _ = self.inlet.pull_chunk()
+
+            return chunk
 
     def update_buffer(self):
         """
@@ -61,3 +71,11 @@ class lsl_stream:
 
         else:
             return False
+
+
+    def close(self):
+        """
+        closes the pylsl inlet stream
+        """
+
+        self.inlet.close_stream()
