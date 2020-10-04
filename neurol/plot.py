@@ -329,8 +329,6 @@ def plot_spectrogram(stream, channels=None, w_size=(1920, 1080)):
     while running:
         if stream.update_buffer():  # update buffer if new data available
 
-            # TODO: divide buffer by 1000?
-
             for ch_ind, plot_img in zip(ch_inds, plot_imgs):
                 freqs, _, Sxx = signal.spectrogram(
                     stream.buffer[:, ch_ind], s_rate, mode='magnitude')
