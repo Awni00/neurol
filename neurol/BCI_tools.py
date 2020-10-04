@@ -15,7 +15,10 @@ from .models.preprocessing import epoch, epoch_band_features
 DEVICE_SAMPLING_RATE = {'muse': 256,
                         }
 
-
+# FIXME: go through and fix
+# what to do w/ DEVICE_SAMPLING_RATE dict
+# `transformers` not being used
+# the use of `device`
 def ensemble_transform(buffer, epoch_len, channels, device='muse',
                        transformers=None, filter_=False, filter_kwargs=None):
     '''
@@ -58,7 +61,7 @@ def ensemble_transform(buffer, epoch_len, channels, device='muse',
     return transformed_signal
 
 
-def band_power_calibrator(inlet, channels, device, bands, percentile=50,
+def band_power_calibrator(stream, channels, device, bands, percentile=50,
                           recording_length=10, epoch_len=1,
                           inter_window_interval=0.2):
     '''
@@ -67,7 +70,7 @@ def band_power_calibrator(inlet, channels, device, bands, percentile=50,
     calibrating a concentration-based BCI.
 
     Arguments:
-        inlet: a pylsl `StreamInlet` of the brain signal.
+        stream(neurol.streams object): neurol stream for brain data.
         channels: array of strings with the names of channels to use.
         device(str): device name for use by `classification_tools`
         bands: the frequency bands to get power features for.
@@ -95,12 +98,10 @@ def band_power_calibrator(inlet, channels, device, bands, percentile=50,
 
     print(f'Recording for {recording_length} seconds...')
 
-    # sleep for recording_length while inlet accumulates chunk
+    # sleep for recording_length while stream accumulates data
     # necessary so that no data is used before the indicated start of recording
-    inlet.open_stream()
     time.sleep(recording_length)
-    recording, _ = inlet.pull_chunk(
-        max_samples=sampling_rate*recording_length)  # get accumulated data
+    recording = stream.get_data()  # get accumulated data
     # get appropriate channels
     recording = get_channels(np.array(recording), channels, device=device)
 
@@ -116,7 +117,6 @@ def band_power_calibrator(inlet, channels, device, bands, percentile=50,
     clb_info = np.squeeze(np.percentile(band_power, percentile, axis=0))
 
     print(f'\nComputed the following power percentiles: \n{clb_info}')
-    input('\nCalibration complete. Press Enter to start BCI...')
 
     return clb_info
 
