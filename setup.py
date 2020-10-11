@@ -6,7 +6,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name="neurol",
-    version="0.0.3",
+    version="0.0.4",
     author="Awni",
     author_email="awni.altabaa@queensu.ca",
     description="A package for modularly implenting Brain-Computer Interfaces",
@@ -15,13 +15,8 @@ setuptools.setup(
     keywords="BCI Brain-Computer Interface Neurotechnology Neuroscience EEG",
     install_requires=[
             "numpy",
-            "matplotlib",
-            "biosppy",
-            "ble2lsl",
             "pylsl",
             "scipy",
-            "scikit_learn",
-            "Keras"
     ],
     include_package_data=True,
     url='https://github.com/Awni00/neurol',
