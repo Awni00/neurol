@@ -5,7 +5,14 @@ Module including utility functions for creating `classifier`'s,
 
 import time
 
-import biosppy.signals as bsig
+try:
+    import biosppy.signals as bsig
+except ImportError:
+    raise ImportError(
+        "biosppy is not installed. \n"
+        "biosppy is required for some functionality in BCI_tools.\n"
+        "you can install it using `pip install biosppy`")
+
 import numpy as np
 
 from .models.classification_tools import get_channels

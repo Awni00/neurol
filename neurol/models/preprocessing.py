@@ -6,7 +6,14 @@ with BCI-related models.
 
 import numpy as np
 from scipy import stats
-import biosppy.signals as bsig
+
+try:
+    import biosppy.signals as bsig
+except ImportError:
+    raise ImportError(
+        "biosppy is not installed. \n"
+        "biosppy is required for some preprocessing functionality.\n"
+        "you can install it using `pip install biosppy`")
 
 
 def epoch(signal, window_size, inter_window_interval):

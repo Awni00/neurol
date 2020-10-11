@@ -5,7 +5,14 @@ Includes time domain, fourrier transform, and spectrogram live plots.
 
 import numpy as np
 from scipy import signal
-import pyqtgraph as pg
+
+try:
+    import pyqtgraph as pg
+except ImportError:
+    raise ImportError(
+        "pyqtgraph is not installed. \n"
+        "pyqtgraph is required for neurol's plotting functionality.\n"
+        "you can install it using `pip install pyqtgraph`")
 
 
 #TODO:

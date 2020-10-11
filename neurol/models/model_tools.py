@@ -5,7 +5,13 @@ Includes functionality for importing and using the models.
 
 import os
 
-from tensorflow.keras.models import load_model
+try:
+    from tensorflow.keras.models import load_model
+except ImportError:
+    raise ImportError(
+        "tensorflow is not installed. \n"
+        "tensorflow is required for some using neurol's models.\n"
+        "you can install it using `pip install tensorflow`")
 
 # Note: currently all models are keras .h5 models.
 # Think about organization of this module as new models are added

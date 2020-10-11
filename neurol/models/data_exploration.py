@@ -4,9 +4,23 @@ especially to provide insights for building machine learning models
 to perform classification relevant to Brain-Computer Interface applications.
 '''
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    raise ImportError(
+        "matplotlib is not installed. \n"
+        "matplotlib is required for the data_exploration module.\n"
+        "you can install it using `pip install matplotlib`")
+
+try:
+    from sklearn.decomposition import PCA, FastICA
+except ImportError:
+    raise ImportError(
+        "scikit-learn is not installed. \n"
+        "scikit-learn is required for some data_exploration functionality.\n"
+        "you can install it using `pip install scikit_learn`")
+
 import numpy as np
-from sklearn.decomposition import PCA, FastICA
 
 
 def plot_signal(signal, sampling_rate, signal_type=None, ch_names=None,
