@@ -28,6 +28,14 @@ neurol.BCI\_tools module
    :undoc-members:
    :show-inheritance:
 
+neurol.plot module
+------------------------
+
+.. automodule:: neurol.plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 neurol.connect\_device module
 -----------------------------
 
