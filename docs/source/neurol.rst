@@ -1,0 +1,61 @@
+neurol package
+==============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   neurol.models
+
+Submodules
+----------
+
+neurol.BCI module
+-----------------
+
+.. automodule:: neurol.BCI
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+neurol.BCI\_tools module
+------------------------
+
+.. automodule:: neurol.BCI_tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+neurol.connect\_device module
+-----------------------------
+
+.. automodule:: neurol.connect_device
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+neurol.plot module
+------------------
+
+.. automodule:: neurol.plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+neurol.streams module
+---------------------
+
+.. automodule:: neurol.streams
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: neurol
+   :members:
+   :undoc-members:
+   :show-inheritance:
