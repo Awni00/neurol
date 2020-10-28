@@ -2,6 +2,7 @@
 module for handling streams of data from different sources
 '''
 
+import time
 import numpy as np
 
 
@@ -38,16 +39,35 @@ class lsl_stream:
         # open stream
         self.inlet.open_stream()
 
-    def get_data(self):
+    def get_data(self, max_samples=2048):
         """
         gets latest data.
         """
 
         if self.inlet.samples_available():
             # get latest data
-            chunk, _ = self.inlet.pull_chunk()
+            chunk, _ = self.inlet.pull_chunk(max_samples=max_samples)
 
             return chunk
+
+    def record_data(self, duration):
+        """
+        records from stream for some duration of time.
+
+        Args:
+            duration (float): length of recording in seconds.
+        """
+
+        max_samples = int(self.sampling_rate * duration)
+
+        print(f'Recording for {duration} seconds...')
+        # sleep for recording_length while stream accumulates data
+        # necessary so no data is used before indicated start of recording
+        time.sleep(duration)
+        # get accumulated data
+        recording = self.get_data(max_samples=max_samples)
+
+        return recording
 
     def update_buffer(self):
         """
