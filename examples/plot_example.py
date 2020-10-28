@@ -13,5 +13,5 @@ stream = streams.lsl_stream(inlet, buffer_length=4096)
 
 # plot! (uncomment and try them all!)
 plot.plot(stream)
-# plot.plot_fft(mstream)
-# plot.plot_spectrogram(mstream)
+# plot.plot_fft(stream)
+# plot.plot_spectrogram(stream)
