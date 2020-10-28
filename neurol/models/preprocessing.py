@@ -112,6 +112,8 @@ def label_epochs(labels, window_size, inter_window_interval, label_method):
 
     elif callable(label_method):
         epoch_labels = [label_method(epoch) for epoch in epochs]
+    else:
+        raise TypeError("label_method is invalid.")
 
     return np.array(epoch_labels)
 
