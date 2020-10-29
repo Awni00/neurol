@@ -28,6 +28,8 @@ def get_channels(signal, channels, device='muse'):
         ch_ind_muse = {'TP9': 0, 'AF7': 1, 'AF8': 2, 'TP10': 3}
         return_signal = np.array([np.array(signal)[:, ch_ind_muse[ch]]
                                   for ch in channels]).T
+    else:
+        raise ValueError('given device is not supported')
 
     return return_signal
 
