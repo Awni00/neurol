@@ -35,6 +35,9 @@ master_doc = 'index'
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon'
 ]
 
+# use same order as in source; don't sort alphabetically
+autodoc_member_order = 'bysource'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
