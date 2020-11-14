@@ -17,13 +17,13 @@ class generic_BCI:
     is performed.
 
     Attributes:
-        classifier: a function which performs classification on the
+        classifier (function): a function which performs classification on the
             most recent data (transformed as needed). returns classification.
-        transformer: function which takes in the most recent data (`buffer`)
+        transformer (function): function which takes in the most recent data (`buffer`)
             and returns the transformed input the classifer expects.
-        action: a function which takes in the classification, and
+        action (function): a function which takes in the classification, and
             performs some action.
-        calibrator: a function which is run on startup to perform
+        calibrator (function): a function which is run on startup to perform
             calibration using `stream`; returns `calibration_info`
             which is used by `classifier` and `transformer`.
         calibration_info: the result of the calibrator, if applicable.
@@ -41,13 +41,13 @@ class generic_BCI:
         See class documentation for infromation about the class itself.
 
         Arguments:
-            classifier: a function which performs classification on the
+            classifier (function): a function which performs classification on the
                 most recent data (transformed as needed). returns class.
-            transformer: function which takes in the most recent data (`buffer`)
+            transformer (function): function which takes in the most recent data (`buffer`)
                 and returns the transformed input the classifer expects.
-            action: a function which takes in the classification, and
+            action (function): a function which takes in the classification, and
                 performs some action.
-            calibrator: a function which is run on startup to perform
+            calibrator (function): a function which is run on startup to perform
                 calibration using `stream`; returns `calibration_info`
                 which is used by `classifier` and `transformer`.
         '''
@@ -70,7 +70,7 @@ class generic_BCI:
         can use at run-time of BCI.
 
         Arguments:
-            stream(neurol.streams object): neurol stream for brain data.
+            stream (neurol.streams object): neurol stream for brain data.
         '''
         # run calibrator to get `calibration_info` which is used when
         # perfroming transformation and classifiaction
@@ -126,7 +126,7 @@ class generic_BCI:
 
 
         Arguments:
-            stream(neurol.streams object): neurol stream for brain data.
+            stream (neurol.streams object): neurol stream for brain data.
         '''
 
         # TODO: implement ending condition?
@@ -143,9 +143,9 @@ class generic_BCI:
         and perform its action.
 
         Arguments:
-            stream(neurol.streams object): neurol stream for brain data.
-            test_length(float): how long to run the test for in seconds.
-            perform_action(bool): whether to perform the action or skip it.
+            stream (neurol.streams object): neurol stream for brain data.
+            test_length (float): how long to run the test for in seconds.
+            perform_action (bool): whether to perform the action or skip it.
         '''
 
         n_updates = 0
@@ -177,17 +177,17 @@ class fsm_BCI(generic_BCI):
     is performed.
 
     Attributes:
-        classifier: a function which performs classification on the
+        classifier (function): a function which performs classification on the
             most recent data (transformed as needed). returns classification.
-        transformer: function which takes in the most recent data (`buffer`)
+        transformer (function): function which takes in the most recent data (`buffer`)
             and returns the transformed input the classifer expects.
-        action: a function which takes in the classification, and
+        action (function): a function which takes in the classification, and
             performs some action.
-        calibrator: a function which is run on startup to perform
+        calibrator (function): a function which is run on startup to perform
             calibration using `stream`; returns `calibration_info`
             which is used by `classifier` and `transformer`.
         calibration_info: the result of the calibrator, if applicable.
-        buffer_length(int): the length of the `buffer`; specifies the
+        buffer_length (int): the length of the `buffer`; specifies the
             number of samples of the signal to keep for classification.
         brain_state: the most recent brain state classification.
 
@@ -242,13 +242,13 @@ class retentive_BCI(generic_BCI):
     is performed.
 
     Attributes:
-        classifier: a function which performs classification on the
+        classifier (function): a function which performs classification on the
             most recent data (transformed as needed). returns classification.
-        transformer: function which takes in the most recent data (`buffer`)
+        transformer (function): function which takes in the most recent data (`buffer`)
             and returns the transformed input the classifer expects.
-        action: a function which takes in the classification, and
+        action (function): a function which takes in the classification, and
             performs some action.
-        calibrator: a function which is run on startup to perform
+        calibrator (function): a function which is run on startup to perform
             calibration using `stream`; returns `calibration_info`
             which is used by `classifier` and `transformer`.
         calibration_info: the result of the calibrator, if applicable.
@@ -266,16 +266,16 @@ class retentive_BCI(generic_BCI):
         See class documentation for infromation about the class itself.
 
         Arguments:
-            classifier: a function which performs classification on the
+            classifier (function): a function which performs classification on the
                 most recent data (transformed as needed). returns class.
-            transformer: function which takes in the most recent data (`buffer`)
+            transformer (function): function which takes in the most recent data (`buffer`)
                 and returns the transformed input the classifer expects.
-            action: a function which takes in the classification, and
+            action (function): a function which takes in the classification, and
                 performs some action.
-            calibrator: a function which is run on startup to perform
+            calibrator (function): a function which is run on startup to perform
                 calibration using `stream`; returns `calibration_info`
                 which is used by `classifier` and `transformer`.
-            memory_length(int): number of brain states to remember into past.
+            memory_length (int): number of brain states to remember into past.
         '''
 
         super().__init__(classifier, transformer, action, calibrator)
@@ -336,12 +336,12 @@ class automl_BCI(generic_BCI):
     is performed.
 
     Attributes:
-        model: a machine learning model.
-        classifier: the model's predictor after training.
+        model: a model object which has fit(X, y) and predict(X) methods.
+        classifier (function): the model's predictor after training.
             accepts transformed data and returns classification.
-        transformer: function which takes in the most recent data (`buffer`)
+        transformer (function): function which takes in the most recent data (`buffer`)
             and returns the transformed input the classifer expects.
-        action: a function which takes in the classification, and
+        action (function): a function which takes in the classification, and
             performs some action.
         brain_state: the most recent brain state classification.
     '''
@@ -358,10 +358,10 @@ class automl_BCI(generic_BCI):
             epoch_len (int): the length of the epochs (in # of samples)
                 used in training and prediction by the model.
             n_states (int): the number of brain states being classified.
-            transformer (callable, optional): function which takes in the
+            transformer (function, optional): function which takes in the
                 most recent data (`buffer`) and returns the transformed input
                 the classifer expects. Defaults to None.
-            action (callable, optional): a function which takes in the
+            action (function, optional): a function which takes in the
                 classification, and performs some action. Defaults to print.
         """
 
@@ -497,7 +497,7 @@ class automl_BCI(generic_BCI):
 
 
         Arguments:
-            stream(neurol.streams object): neurol stream for brain data.
+            stream (neurol.streams object): neurol stream for brain data.
         '''
         if self.classifier is None:
             print(('Classifier is None.\n'
