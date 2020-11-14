@@ -42,6 +42,7 @@ autodoc_default_options = {
     'special-members': '__init__',
     'exclude-members': '__weakref__'
 }
+autodoc_member_order = 'bysource' # a fix for readthedocs.org
 napoleon_use_ivar = True
 
 # Add any paths that contain templates here, relative to this directory.
