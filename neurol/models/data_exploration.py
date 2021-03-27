@@ -63,7 +63,7 @@ def plot_grid(signals, num_signals=None, sampling_rate=1, cols=4,
     Arguments:
         signals: array of signals to plot from (num_signals, num_samples).
         num_signals(int): the number of siganls to plot.
-        sr(float): sampling rate of signals.
+        sampling_rate(float): sampling rate of signals.
         cols(int): the number of columns in the grid.
         fig_size: tuple (x,y) of figure size in inches.
         sharey(bool): whether to share scale on y-axis (see matplotlib).
@@ -121,11 +121,12 @@ def stim_triggered_average(signal, sampling_rate, timestamps, duration_before,
     signal characteristic around known events.
 
     Arguments:
-        signal: signal in the form of an array of shape [samples, channels].
+        signal: signal as an array of shape [samples, channels].
         sr(float): sampling rate of the signal.
         timestamps: array of floats containing the timestamps for each event.
         duration_before: the duration to be considered before each event.
         duration_after: the duration to be considered after each event.
+        plot(optional): whether or not to plot the stim_triggered_average.
 
     Returns:
         stim_triggered_average: average signal characteristic around event.
@@ -141,8 +142,6 @@ def stim_triggered_average(signal, sampling_rate, timestamps, duration_before,
 
     sta = np.mean(
         [signal[i-ind_before:i+ind_after] for i in stim_indices], axis=0)
-    sta = np.mean(
-        [signal[i-ind_before:i+ind_after] for i in stim_indices], axis=0)
     relative_time = np.linspace(-duration_before,
                                 duration_after, len(sta))
 
@@ -156,7 +155,7 @@ def stim_triggered_average(signal, sampling_rate, timestamps, duration_before,
 def plot_PCA(epochs, sampling_rate=1, n_components=None, return_PCA=False,
              PCA_kwargs=None, plot_grid_kwargs=None):
     '''
-    performs independent component analysis and plots independent components
+    performs principal component analysis and plots principal components
     of epochs of a signal.
 
     Arguments:
@@ -167,20 +166,19 @@ def plot_PCA(epochs, sampling_rate=1, n_components=None, return_PCA=False,
         return_PCA(bool): whether to return the independent components.
         PCA_kwargs(dict): dictionary containing kwargs for PCA function
             (see scikit-learn).
-        plot_grid_kwargs(dict): dictionary contianing kwargs for
+        plot_grid_kwargs(dict): dictionary containing kwargs for
             plot_grid function.
 
     '''
+
     if not PCA_kwargs:
-        # TODO: change to be done like in classification_tools.transform
         PCA_kwargs = {}
     pca = PCA(n_components=n_components, **PCA_kwargs)
     principle_components = pca.fit_transform(epochs.T).T
 
     if not plot_grid_kwargs:
-        # TODO: change to be done like in classification_tools.transform
         plot_grid_kwargs = {}
-    plot_grid(principle_components, sr=sampling_rate,
+    plot_grid(principle_components, sampling_rate=sampling_rate,
               random=False, **plot_grid_kwargs)
 
     if return_PCA:
@@ -201,21 +199,19 @@ def plot_ICA(epochs, sampling_rate=1, n_components=None, return_ICA=False,
         return_ICA(bool): whether to return the independent components.
         FastICA_kwargs(dict): dictionary containing kwargs for FastICA
             function (see scikit-learn).
-        plot_grid_kwargs(dict): dictionary contianing kwargs for
+        plot_grid_kwargs(dict): dictionary containing kwargs for
             plot_grid function.
 
     '''
 
     if not FastICA_kwargs:
-        # TODO: change to be done like in classification_tools.transform
         FastICA_kwargs = {}
     ICA = FastICA(n_components=n_components, **FastICA_kwargs)
     independent_components = ICA.fit_transform(epochs.T).T
 
     if not plot_grid_kwargs:
-        # TODO: change to be done like in classification_tools.transform
         plot_grid_kwargs = {}
-    plot_grid(independent_components, sr=sampling_rate,
+    plot_grid(independent_components, sampling_rate=sampling_rate,
               random=False, **plot_grid_kwargs)
 
     if return_ICA:
