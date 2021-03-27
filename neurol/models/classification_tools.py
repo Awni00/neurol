@@ -29,7 +29,7 @@ def get_channels(signal, channels, device='muse'):
         return_signal = np.array([np.array(signal)[:, ch_ind_muse[ch]]
                                   for ch in channels]).T
     else:
-        raise ValueError('given device is not supported')
+        raise ValueError('Given device is not supported. You should extract the desired channels manually.')
 
     return return_signal
 
@@ -109,5 +109,7 @@ def threshold_clf(features, threshold, clf_consolidator='any'):
         except TypeError as t_err:
             print("Couldn't consolidate classification with `clf_consolidator`")
             raise t_err
+    else:
+        raise ValueError('The given clf_consolidator is not supported.')
 
     return label
