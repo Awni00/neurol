@@ -26,46 +26,91 @@ DEVICE_SAMPLING_RATE = {'muse': 256,
 # what to do w/ DEVICE_SAMPLING_RATE dict
 # `transformers` not being used
 # the use of `device`
-def ensemble_transform(buffer, epoch_len, channels, device='muse',
-                       transformers=None, filter_=False, filter_kwargs=None):
+def ensemble_transform(signal, epoch_len=None, channels=None, device=None,
+                        transformers=None, filter_=False, sampling_rate=None,
+                        filter_kwargs=None):
     '''
     Ensemble transform function. Takes in buffer as input. Extracts the
     appropriate channels and samples, performs filtering, and transforms.
 
     Arguments:
-        buffer: most recent stream data. shape: [n_samples, n_channels]
-        epoch_len: length of epoch expected by predictor (number of samples).
-        channels: list of channels expected by predictor. See get_channels.
-        device: string of device name. used to get channels and sampling_rate.
-        filter_: boolean of whether to perform filtering
-        filter_kwargs: dictionary of kwargs to be passed to filtering function.
+        signal(np.ndarray): signal of shape: [n_samples, n_channels]
+        epoch_len(int): length of epoch expected by classifier (# of samples).
+                        optional.
+        channels(list of str or int): list of channels expected by classifier.
+                        See get_channels. optional.
+        device(str): device name. used to get channels and sampling_rate.
+        filter_(boolean): whether to perform filtering
+        filter_kwargs(dict): dictionary of kwargs passed to filtering function.
             See biosppy.signals.tools.filter_signal. by default,
             an order 8 bandpass butter filter is performed between 2Hz and 40Hz.
     '''
 
-    # get the latest epoch_len samples of the buffer
-    transformed_signal = np.array(buffer[-epoch_len:, :])
+    transformed_signal = signal
+
+    # get the latest epoch from the signal
+    if epoch_len is not None:
+        transformed_signal = np.array(signal[-1*epoch_len:, :])
 
     # get the selected channels
-    transformed_signal = get_channels(transformed_signal, channels, device)
+    if channels:
+        transformed_signal = get_channels(transformed_signal, channels, device)
 
     # filter_signal
     if filter_:
-        # create dictionary of kwargs for filter_signal
-        filt_kwargs = {'sampling_rate': DEVICE_SAMPLING_RATE[device],
-                       'ftype': 'butter',
-                       'band': 'bandpass',
-                       'frequency': (2, 40),
-                       'order': 8}
+        if not sampling_rate:
+            try:
+                sampling_rate = DEVICE_SAMPLING_RATE[device]
+            except KeyError:
+                raise ValueError(
+                    'sampling_rate is required when filter_ is True.\n'
+                    'Note: this can sometimes be extracted from '
+                    'the `device` parameter for supported devices')
+        else:
+            if not filter_kwargs:
+                filter_kwargs = {}
+            transformed_signal = filter_signal(
+                transformed_signal, sampling_rate, **filter_kwargs)
 
-        if filter_kwargs is not None:
-            filt_kwargs.update(filter_kwargs)
 
-        transformed_signal, _, _ = bsig.tools.filter_signal(
-            signal=transformed_signal.T, **filt_kwargs)
-        transformed_signal = transformed_signal.T
+    # apply pipeline of transformers
+    if transformers:
+        for transformer in transformers:
+            transformed_signal = transformer(transformed_signal)
 
     return transformed_signal
+
+
+def filter_signal(signal, sampling_rate, ftype='butter', band='bandpass',
+                  frequency=(2, 40), order=8, **filter_kwargs):
+    """
+    applies frequency-based filters to a given signal.
+
+    Args:
+        signal (np.ndarray): signal of shape [n_samples, n_channels]
+        sampling_rate(float): sampling rate of signal.
+        ftype (str, optional): type of filter.
+            one of 'FIR', 'butter', 'chebby1', 'chebby2', 'ellip', or 'bessel'.
+            Defaults to 'butter'.
+        band (str, optional): band type.
+            one of 'lowpass', 'highpass', 'bandpass', or 'bandstop'.
+            Defaults to 'bandpass'.
+        frequency (float or tuple of floats, optional): cutoff frequencies.
+            single if 'lowpass'/'highpass', tuple if 'bandpass'/'bandstop'.
+            Defaults to (2,40).
+        order (int, optional): order of filter. Defaults to 8.
+        **filter_kwargs: keyword args for biosppy.signals.tools.filter_signal
+
+    Returns:
+        [np.ndarray]: filtered signal
+    """
+
+    filtered, _, _ = bsig.tools.filter_signal(
+        signal=signal.T, sampling_rate=sampling_rate, ftype=ftype, band=band,
+        frequency=frequency, order=order, **filter_kwargs)
+    filtered = filtered.T
+
+    return filtered
 
 
 def band_power_calibrator(stream, channels, device, bands, percentile=50,
@@ -128,36 +173,26 @@ def band_power_calibrator(stream, channels, device, bands, percentile=50,
     return clb_info
 
 
-def band_power_transformer(buffer, clb_info, channels, device, bands,
-                           epoch_len=1):
+def band_power_transformer(signal, sampling_rate, bands):
     '''
     Transformer for `generic_BCI.BCI` which chooses channels, epochs, and
     gets power features on some choice of bands.
 
     Arguments:
-        buffer: most recent stream data. shape: [n_samples, n_channels]
-        clb_info: not used. included for compatibility with generic_BCI.BCI
-        channels: list of strings of the channels to use.
-        device:(str): device name for use by `classification_tools`.
+        signal(np.ndarray): most recent stream data.
+            shape: [n_samples, n_channels]
+        sampling_rate(float): sampling_rate of signal.
         bands: the frequency bands to get power features for.
             'all': all of ['theta', 'alpha_low', 'alpha_high', 'beta', 'gamma']
             otherwise a list of strings of the desired bands.
-        epoch_len(float): the duration of data to classify on in seconds.
 
     Returns:
         transformed_signal: array of shape [n_bands, n_channels] of the
         channel-wise power of each band over the epoch.
     '''
-    sr = DEVICE_SAMPLING_RATE[device]  # get device sampling rate
-
-    # get the latest epoch_len samples from the buffer
-    transformed_signal = np.array(buffer[-int(epoch_len*sr):, :])
-
-    # get the selected channels
-    transformed_signal = get_channels(transformed_signal, channels, device)
 
     # compute band_features on signal
     transformed_signal = np.squeeze(epoch_band_features(
-        transformed_signal, sr, bands=bands, return_dict=False))
+        signal, sampling_rate, bands=bands, return_dict=False))
 
     return transformed_signal
