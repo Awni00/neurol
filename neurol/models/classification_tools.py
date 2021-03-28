@@ -7,15 +7,15 @@ import numpy as np
 
 
 
-def get_channels(signal, channels, device='muse'):
+def get_channels(signal, channels, device=None):
     '''
     Returns a signal with only the desired channels.
 
     Arguments:
-        signal: a signal of shape [n_samples, n_channels]
-        channels: an array of the str names of the desired channels.
+        signal(np.ndarray): a signal of shape [n_samples, n_channels]
+        channels(array): str names or int indices of the desired channels.
             returned in given order.
-        device: str name of the device.
+        device(str): name of the device. Optional.
 
     Returns:
         numpy array of signal with shape [n_channels, n_desired_channels].
@@ -24,12 +24,22 @@ def get_channels(signal, channels, device='muse'):
 
     # check device; each device has its own ch_ind dictionary corresponding to
     # its available channels
-    if device == 'muse':
-        ch_ind_muse = {'TP9': 0, 'AF7': 1, 'AF8': 2, 'TP10': 3}
-        return_signal = np.array([np.array(signal)[:, ch_ind_muse[ch]]
-                                  for ch in channels]).T
+    if isinstance(channels[0], str):
+        if device == 'muse':
+            ch_ind_muse = {'TP9': 0, 'AF7': 1, 'AF8': 2, 'TP10': 3}
+            return_signal = np.array([np.array(signal)[:, ch_ind_muse[ch]]
+                                    for ch in channels]).T
+        else:
+            raise ValueError(
+                'Given device is not supported. '
+                'You should extract the desired channels manually.')
+
+    elif isinstance(channels[0], int):
+        return_signal = np.array([np.array(signal)[:, ch]
+                                    for ch in channels]).T
+
     else:
-        raise ValueError('Given device is not supported. You should extract the desired channels manually.')
+        raise ValueError('Invalid channel type. Must be str name or int index.')
 
     return return_signal
 
