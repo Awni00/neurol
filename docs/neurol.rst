@@ -44,5 +44,10 @@ neurol.connect\_device module
    :undoc-members:
    :show-inheritance:
 
+neurol.streams
+-----------------------------
 
-
+.. automodule:: neurol.streams
+   :members:
+   :undoc-members:
+   :show-inheritance:
