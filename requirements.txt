@@ -1,5 +1,5 @@
 matplotlib==3.4.2
-numpy==1.19.2
+numpy==1.22.0
 pylsl==1.13.6
 pyqtgraph==0.11.0
 PyQt5==5.15.1
